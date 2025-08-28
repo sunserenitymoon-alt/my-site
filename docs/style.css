@@ -45,9 +45,96 @@ ul.posts{list-style:none;padding:0;display:grid;grid-template-columns:1fr;gap:16
 .meta{font-size:12px;color:var(--muted);margin:0 0 8px;display:block}
 .excerpt{font-size:15px;color:var(--text);margin:0}
 
-/* --- Article page (copied posts) --- */
-article{border:1px solid var(--line); border-radius:16px; padding:22px; background:var(--card); box-shadow:var(--shadow); margin:20px 0}
-article h1{margin-top:0}
-table{border-collapse:collapse;width:100%}
-td,th{border:1px solid var(--line);padding:8px}
-code,kbd{background:rgba(127,127,127,.12);padding:.15em .35em;border-radius:6px}
+/* --- Article page --- */
+article {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 28px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  margin: 24px 0;
+  line-height: 1.8;
+  font-size: 16px;
+}
+
+article h1 {
+  font-size: 26px;
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-weight: 800;
+}
+
+article h3 {
+  font-size: 18px;
+  margin-top: 22px;
+  margin-bottom: 8px;
+  padding-left: 10px;
+  border-left: 4px solid var(--brand);
+  font-weight: 700;
+}
+
+/* styled lists */
+article ul {
+  padding-left: 22px;
+  margin-bottom: 12px;
+}
+article ul li {
+  margin: 6px 0;
+  list-style: none;
+  position: relative;
+}
+article ul li::before {
+  content: "✔";
+  color: var(--brand);
+  font-weight: bold;
+  position: absolute;
+  left: -18px;
+}
+
+article ol {
+  padding-left: 26px;
+  margin-bottom: 12px;
+}
+article ol li {
+  margin: 8px 0;
+}
+
+/* CTA box */
+article hr {
+  margin: 24px 0;
+  border: none;
+  border-top: 1px solid var(--line);
+}
+article p b {
+  font-size: 15px;
+}
+article ul li a {
+  color: var(--brand);
+  font-weight: 600;
+  text-decoration: none;
+}
+article ul li a:hover {
+  text-decoration: underline;
+}
+
+/* callout box for resources */
+article .cta {
+  background: #f3f8ff;
+  border: 1px solid #d0e4ff;
+  padding: 14px;
+  border-radius: 12px;
+  margin-top: 18px;
+}
+article .cta a {
+  display: inline-block;
+  margin-right: 10px;
+  padding: 6px 14px;
+  background: var(--brand);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 14px;
+  text-decoration: none;
+}
+article .cta a:hover {
+  opacity: .9;
+}
