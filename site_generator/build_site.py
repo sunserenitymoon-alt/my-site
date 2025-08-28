@@ -68,7 +68,7 @@ HTML_LAYOUT = HTML_LAYOUT = """<!doctype html>
   <h1>Auto Niche Site</h1>
   <p>{subtitle}</p>
   <nav class="chips" style="margin-top:8px">
-    <a class="chip" href="https://your-gumroad-or-payhip-link" target="_blank">PDF 다운로드</a>
+    <a class="chip" href="https://serenimoon.gumroad.com/l/dceyg" target="_blank">PDF 다운로드</a>
     <a class="chip" href="www.youtube.com/@AcanthusH" target="_blank">YouTube</a>
   </nav>
 </header>
