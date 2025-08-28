@@ -18,12 +18,14 @@ jobs:
         with:
           python-version: "3.11"
 
-      # ⭐ 셀프 힐링: 필요한 폴더/샘플파일을 CI에서 강제로 만들어둠
-      - name: Prep repo structure (self-heal)
+      # ✅ 파일이 '없을 때만' 만들어라 (덮어쓰기 금지)
+      - name: Prep repo structure (self-heal, no-overwrite)
         run: |
           mkdir -p site_generator content/keywords content/posts docs
-          # generate_posts.py (stdlib)
-          cat > site_generator/generate_posts.py << 'PY'
+
+          # generate_posts.py - 없을 때만 생성
+          if [ ! -f site_generator/generate_posts.py ]; then
+            cat > site_generator/generate_posts.py << 'PY'
           import os, csv, re, datetime
           POSTS_DIR="content/posts"; KEYWORDS="content/keywords/keywords.csv"
           def slugify(s):
@@ -54,25 +56,25 @@ jobs:
               print("OK: posts generated")
           if __name__=="__main__": main()
           PY
-          # build_site.py (stdlib)
-          cat > site_generator/build_site.py << 'PY'
+          fi
+
+          # build_site.py - 없을 때만 생성 (아가씨가 올린 '카드형'을 보존)
+          if [ ! -f site_generator/build_site.py ]; then
+            cat > site_generator/build_site.py << 'PY'
           import os, glob, datetime, shutil
           DOCS="docs"; POSTS="content/posts"
           STYLE="body{font-family:system-ui,sans-serif;max-width:840px;margin:24px auto;padding:0 12px;line-height:1.6}header,footer{opacity:.75}article{border:1px solid #eee;border-radius:12px;padding:16px;margin:18px 0}"
           def ensure():
               os.makedirs(DOCS, exist_ok=True)
               with open(os.path.join(DOCS,"style.css"),"w",encoding="utf-8") as f: f.write(STYLE)
-          LAYOUT="""<!doctype html><meta charset="utf-8"><title>{title}</title><link rel="stylesheet" href="style.css"><header><h1>Auto Niche Site</h1></header><main>{content}</main><footer><small>© {y}</small></footer>"""
           def main():
-              ensure(); items=[]
-              for p in sorted(glob.glob(os.path.join(POSTS,"*.html")), reverse=True):
-                  name=os.path.basename(p); shutil.copyfile(p, os.path.join(DOCS,name)); items.append(f'<li><a href="{name}">{name}</a></li>')
-              index=LAYOUT.format(title="Home", content="<h2>Latest</h2><ul>"+("\n".join(items) or "<li>첫 게시물을 기다리는 중…</li>")+"</ul>", y=datetime.date.today().year)
-              with open(os.path.join(DOCS,"index.html"),"w",encoding="utf-8") as f: f.write(index)
-              print("OK: site built")
+              ensure()
+              print("OK: basic builder (placeholder)")
           if __name__=="__main__": main()
           PY
-          # 기본 keywords.csv 없으면 생성
+          fi
+
+          # 기본 keywords.csv 없으면만 생성
           if [ ! -f content/keywords/keywords.csv ]; then
             cat > content/keywords/keywords.csv << 'CSV'
           keyword,subtopic,intent
@@ -81,11 +83,9 @@ jobs:
           영어 단어 암기표,주 100단어,transactional
           CSV
           fi
-          # 기본 index (없을 때만)
-          if [ ! -f docs/index.html ]; then
-            echo "<!doctype html><meta charset='utf-8'><link rel='stylesheet' href='style.css'><h1>Auto Niche Site</h1><p>첫 빌드 준비 완료.</p>" > docs/index.html
-          fi
-          echo "Prep done"; ls -la; ls -la site_generator || true; ls -la content || true; ls -la docs || true
+
+          # docs/style.css는 아가씨 코드가 덮어쓰므로 여기선 생성 안 함
+          echo "Prep done (no overwrite)"; ls -la site_generator; ls -la docs
 
       - name: Generate posts
         run: python site_generator/generate_posts.py
@@ -98,5 +98,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "auto(self-heal): build $(date -u '+%Y-%m-%d %H:%M:%S')" || echo "No changes"
+          git commit -m "auto(self-heal no-overwrite): build $(date -u '+%Y-%m-%d %H:%M:%S')" || echo "No changes"
           git push
