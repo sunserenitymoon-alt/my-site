@@ -60,14 +60,17 @@ code,kbd{background:rgba(127,127,127,.12);padding:.15em .35em;border-radius:6px}
 """
 
 
-HTML_LAYOUT = """<!doctype html>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+HTML_LAYOUT = HTML_LAYOUT = """<!doctype html>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <link rel="stylesheet" href="style.css?v=2">
 <header>
   <h1>Auto Niche Site</h1>
   <p>{subtitle}</p>
+  <nav class="chips" style="margin-top:8px">
+    <a class="chip" href="https://your-gumroad-or-payhip-link" target="_blank">PDF 다운로드</a>
+    <a class="chip" href="www.youtube.com/@AcanthusH" target="_blank">YouTube</a>
+  </nav>
 </header>
 <main>
 {content}
