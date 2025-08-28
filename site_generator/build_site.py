@@ -63,13 +63,6 @@ ul.posts{list-style:none; padding:0; display:grid; grid-template-columns:1fr; ga
 .card a.title:hover{text-decoration:underline}
 .meta{font-size:12px; color:var(--muted); margin:0 0 8px; display:block}
 
-/* thumbnail badge */
-.thumb{
-  position:absolute; right:12px; top:12px; width:36px; height:36px; border-radius:50%;
-  display:flex; align-items:center; justify-content:center; font-size:18px; color:#fff;
-  background:linear-gradient(135deg,var(--brand-2),var(--brand-3));
-  box-shadow:0 6px 14px rgba(0,0,0,.15)
-}
 
 /* ===== Article page ===== */
 article{
