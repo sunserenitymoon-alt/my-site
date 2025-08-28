@@ -1,8 +1,8 @@
-name: Generate & Build Site (UltraSlim)
+name: Generate & Build Site (UltraSlim-SelfHeal)
 
 on:
   schedule:
-    - cron: "0 3 * * 1,3,5"   # 월/수/금 03:00 UTC
+    - cron: "0 3 * * 1,3,5"
   workflow_dispatch:
 
 permissions:
@@ -13,22 +13,90 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Generate posts (stdlib only)
+      # ⭐ 셀프 힐링: 필요한 폴더/샘플파일을 CI에서 강제로 만들어둠
+      - name: Prep repo structure (self-heal)
         run: |
-          python site_generator/generate_posts.py
+          mkdir -p site_generator content/keywords content/posts docs
+          # generate_posts.py (stdlib)
+          cat > site_generator/generate_posts.py << 'PY'
+          import os, csv, re, datetime
+          POSTS_DIR="content/posts"; KEYWORDS="content/keywords/keywords.csv"
+          def slugify(s):
+              s=s.lower(); s=re.sub(r'[^a-z0-9ㄱ-힣\\s-]','',s); s=re.sub(r'\\s+','-',s).strip('-'); return s[:60] or "post"
+          def ensure(): os.makedirs(POSTS_DIR, exist_ok=True)
+          def load():
+              if not os.path.exists(KEYWORDS):
+                  return [("시험 공부 플래너","중학생용","informational"),
+                          ("수학 공식 정리 프린트","중학 수학","informational"),
+                          ("영어 단어 암기표","주 100단어","transactional")]
+              out=[]; 
+              with open(KEYWORDS, encoding="utf-8") as f:
+                  r=csv.DictReader(f)
+                  for x in r: out.append((x.get("keyword","").strip(), x.get("subtopic","").strip(), x.get("intent","informational").strip()))
+              return out
+          POST_HTML = """<!doctype html><meta charset="utf-8">
+          <title>{title}</title><link rel="stylesheet" href="../style.css">
+          <article><h1>{title}</h1><p><small>{date} · tags: auto</small></p>
+          <ul><li>서브토픽: {sub}</li><li>의도: {intent}</li></ul>
+          <ol><li>핵심 한 줄</li><li>오늘 액션 1개</li><li>관련 자료 추후 추가</li></ol></article>"""
+          def main():
+              ensure(); today=datetime.date.today().strftime("%Y-%m-%d")
+              for kw,sub,intent in load()[:10]:
+                  title=f"{kw} — {sub}" if sub else kw
+                  slug=slugify(title)
+                  html=POST_HTML.format(title=title,date=today,sub=sub,intent=intent)
+                  with open(os.path.join(POSTS_DIR,f"{today}-{slug}.html"),"w",encoding="utf-8") as f: f.write(html)
+              print("OK: posts generated")
+          if __name__=="__main__": main()
+          PY
+          # build_site.py (stdlib)
+          cat > site_generator/build_site.py << 'PY'
+          import os, glob, datetime, shutil
+          DOCS="docs"; POSTS="content/posts"
+          STYLE="body{font-family:system-ui,sans-serif;max-width:840px;margin:24px auto;padding:0 12px;line-height:1.6}header,footer{opacity:.75}article{border:1px solid #eee;border-radius:12px;padding:16px;margin:18px 0}"
+          def ensure():
+              os.makedirs(DOCS, exist_ok=True)
+              with open(os.path.join(DOCS,"style.css"),"w",encoding="utf-8") as f: f.write(STYLE)
+          LAYOUT="""<!doctype html><meta charset="utf-8"><title>{title}</title><link rel="stylesheet" href="style.css"><header><h1>Auto Niche Site</h1></header><main>{content}</main><footer><small>© {y}</small></footer>"""
+          def main():
+              ensure(); items=[]
+              for p in sorted(glob.glob(os.path.join(POSTS,"*.html")), reverse=True):
+                  name=os.path.basename(p); shutil.copyfile(p, os.path.join(DOCS,name)); items.append(f'<li><a href="{name}">{name}</a></li>')
+              index=LAYOUT.format(title="Home", content="<h2>Latest</h2><ul>"+("\n".join(items) or "<li>첫 게시물을 기다리는 중…</li>")+"</ul>", y=datetime.date.today().year)
+              with open(os.path.join(DOCS,"index.html"),"w",encoding="utf-8") as f: f.write(index)
+              print("OK: site built")
+          if __name__=="__main__": main()
+          PY
+          # 기본 keywords.csv 없으면 생성
+          if [ ! -f content/keywords/keywords.csv ]; then
+            cat > content/keywords/keywords.csv << 'CSV'
+          keyword,subtopic,intent
+          시험 공부 플래너,중학생용,informational
+          수학 공식 정리 프린트,중학 수학,informational
+          영어 단어 암기표,주 100단어,transactional
+          CSV
+          fi
+          # 기본 index (없을 때만)
+          if [ ! -f docs/index.html ]; then
+            echo "<!doctype html><meta charset='utf-8'><link rel='stylesheet' href='style.css'><h1>Auto Niche Site</h1><p>첫 빌드 준비 완료.</p>" > docs/index.html
+          fi
+          echo "Prep done"; ls -la; ls -la site_generator || true; ls -la content || true; ls -la docs || true
 
-      - name: Build site (stdlib only)
-        run: |
-          python site_generator/build_site.py
+      - name: Generate posts
+        run: python site_generator/generate_posts.py
+
+      - name: Build site
+        run: python site_generator/build_site.py
 
       - name: Commit & push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "auto(ultra-slim): build $(date -u '+%Y-%m-%d %H:%M:%S')" || echo "No changes"
+          git commit -m "auto(self-heal): build $(date -u '+%Y-%m-%d %H:%M:%S')" || echo "No changes"
           git push
