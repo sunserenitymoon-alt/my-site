@@ -118,25 +118,6 @@ HTML_LAYOUT = """<!doctype html>
 <footer><small>© {year} · {brand}</small></footer>
 """
 
-# 간단한 이모지 썸네일 매핑
-ICON_MAP = [
-    (r"planner|timetable|schedule|time\-?block", "🗂"),
-    (r"habit|tracker|checklist", "✅"),
-    (r"meditation|sleep|anxiety|focus", "🧘"),
-    (r"math|algebra|geometry|probability|formula", "➗"),
-    (r"vocab|vocabulary|flashcard|english", "🔤"),
-    (r"reading|log|book", "📚"),
-    (r"pomodoro", "⏱"),
-    (r"minecraft|build|redstone|farm", "🧱"),
-    (r"pokemon|card|deck", "🃏"),
-]
-def pick_icon(title:str)->str:
-    t = title.lower()
-    for pat, ico in ICON_MAP:
-        if re.search(pat, t):
-            return ico
-    return "✨"
-
 def ensure_docs():
     os.makedirs(DOCS, exist_ok=True)
     with open(os.path.join(DOCS, "style.css"), "w", encoding="utf-8") as f:
@@ -175,12 +156,11 @@ def main():
         title, date = extract_title_date(src)
         icon = pick_icon(title)
         cards.append(
-            f'<li class="card">'
-            f'  <div class="thumb">{icon}</div>'
-            f'  <a class="title" href="{name}">{title}</a>'
-            f'  <span class="meta">{date}</span>'
-            f'</li>'
-        )
+    f'<li class="card">'
+    f'  <a class="title" href="{name}">{title}</a>'
+    f'  <span class="meta">{date}</span>'
+    f'</li>'
+)
 
     grid = "<ul class='posts'>" + ("\n".join(cards) or "<li class='card'>Getting things ready…</li>") + "</ul>"
     index = HTML_LAYOUT.format(
