@@ -1,4 +1,4 @@
-# build_site.py — brand header/footer + nav + pretty cards + article CSS (NO emoji thumb) + css-path fix
+# build_site.py — Brand header/footer + nav + pretty cards + article CSS (mobile optimized) + css-path fix
 import os, glob, datetime, re
 
 DOCS  = "docs"
@@ -67,36 +67,37 @@ article ol{padding-left:26px; margin-bottom:12px}
 article ol li{margin:8px 0}
 article hr{margin:24px 0; border:none; border-top:1px solid var(--line)}
 .cta{background:#eef5ff20; border:1px solid var(--line); padding:14px; border-radius:12px; margin-top:18px}
-.cta a{display:inline-block; margin-right:10px; padding:8px 14px; background:var(--brand); color:#fff; border-radius:10px; font-size:14px; text-decoration:none}
+.cta a{display:inline-block; margin:6px 8px 6px 0; padding:10px 16px; background:var(--brand); color:#fff; border-radius:10px; font-size:14px; text-decoration:none}
 .cta a:hover{opacity:.92}
 footer{opacity:.85; margin:28px 0 12px; text-align:center; font-size:13px}
 
 /* ===== Mobile adjustments ===== */
 @media (max-width: 600px) {
-  body { font-size: 17px; line-height: 1.8; padding: 0 12px; }
+  body { font-size: 17px; line-height: 1.85; padding: 0 12px; }
   article { padding: 20px; font-size: 17px; }
   article h1 { font-size: 22px; }
   article h3 { font-size: 17px; }
   .cta a {
     display:block;
-    margin:8px 0;
+    margin:10px 0;
     font-size:16px;
-    padding:10px 14px;
+    padding:12px 16px;
     text-align:center;
   }
   .btn {
-    font-size:14px;
-    padding:10px 16px;
+    font-size:15px;
+    padding:12px 18px;
+    flex:1;
+    justify-content:center;
   }
 }
-
 """
 
 HTML_LAYOUT = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=6">
 <header class="brand">
   <h1>{brand}</h1>
   <p>{tagline}</p>
@@ -131,7 +132,7 @@ def extract_title_date(path):
     return title, date
 
 def fix_css_path(html:str)->str:
-    return re.sub(r'href=["\'](\.\./)?style\.css(\?[^"\']*)?["\']', 'href="style.css?v=5"', html)
+    return re.sub(r'href=["\'](\.\./)?style\.css(\?[^"\']*)?["\']', 'href="style.css?v=6"', html)
 
 def main():
     ensure_docs()
@@ -154,7 +155,7 @@ def main():
     )
     with open(os.path.join(DOCS, "index.html"), "w", encoding="utf-8") as f:
         f.write(index)
-    print("OK: site built (brand, no emoji thumb, css v5)")
+    print("OK: site built (mobile optimized css v6)")
 
 if __name__ == "__main__":
     main()
