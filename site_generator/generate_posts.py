@@ -106,81 +106,118 @@ def auto_expand(existing):
     return items
 
 # ---------- Text generation (EN) ----------
+import random, textwrap
+
 def make_intro(kw, sub, intent):
-    base = f"Quick guide on “{kw}”."
-    if sub: base += f" Focus: {sub}."
-    tone = {
-        "informational": "Key ideas summarized so you can apply them fast.",
-        "transactional": "Includes ready-to-use templates and printables.",
-        "navigational":  "Jump straight to what you need.",
-    }.get(intent, "Just the essentials you need.")
-    return base + " " + tone
+    pieces = []
+    focus = f" Focus: {sub}." if sub else ""
+    if intent == "transactional":
+        pieces.append(f"Practical guide to “{kw}”.{focus} Grab-and-go tips plus a printable/ready-to-use asset.")
+    else:
+        pieces.append(f"Quick guide on “{kw}”.{focus} Key ideas in plain English so you can apply them fast.")
+    pieces.append("You can finish this in ~10 minutes, then extend if you like.")
+    return " ".join(pieces)
 
-def make_bullets(intent):
-    libs = {
-        "informational": [
-            "Summarize the core idea in one sentence.",
-            "Create one example and test yourself.",
-            "Spend just 10 minutes to try a tiny experiment today.",
-        ],
-        "transactional": [
-            "Download/print the template and use it right away.",
-            "Run in 25-minute Pomodoro blocks and tick off items.",
-            "Write a short reflection after you finish.",
-        ],
-    }
-    return libs.get(intent, libs["informational"])[:3]
+def make_value_list(kw, intent):
+    base = [
+        "A one-minute summary you can recall later",
+        "A 3-step mini plan to get moving today",
+        "A tiny checklist to tick as you go",
+    ]
+    if intent == "transactional":
+        base.append("A printable/template link so you can use it right away")
+    return base
 
-def mini_routine():
+def make_steps(kw):
+    # generic + lightweight, works for any topic
     return [
-        "25-minute focus ▶ full attention",
-        "5-minute break ▶ stretch & hydrate",
-        "Write a 3-line summary ▶ tick your checklist",
+        f"Define your goal for “{kw}” in one short sentence.",
+        "Set a 25-minute timer and work only on this.",
+        "Write a 3-line summary of what you did and what to do next.",
+        "Save your notes (or printable) to a folder you can find again.",
+        "Schedule the next 25-minute block on your calendar.",
     ]
 
-def related_list():
-    pool = [
-        "Free study resources you can use today",
-        "Build a 10-minute daily routine",
-        "Exam-week focus tips",
-        "Time management basics for students",
+def make_domain_example(kw, sub):
+    t = (kw + " " + (sub or "")).lower()
+    # very light heuristics to sound specific
+    if "pokemon" in t or "card" in t:
+        return ("Example: Use inner sleeves (62×89 mm) + outer sleeves (66×91 mm) "
+                "and a 9-pocket binder. Keep binders vertical; target 45–55% humidity.")
+    if "planner" in t or "time-block" in t:
+        return ("Example: Time-block 25-min study + 5-min break ×4. "
+                "Put math in the first block; languages after lunch when energy dips.")
+    if "habit" in t:
+        return ("Example: Pick one habit only (e.g., 10-minute reading). "
+                "Track it Mon–Fri; mark ✅/❌; review every Sunday.")
+    if "meditation" in t or "sleep" in t:
+        return ("Example: 4-7-8 breathing for 3 rounds, then body scan from toes to head. "
+                "Lights off, phone outside your room.")
+    if "vocab" in t or "flashcard" in t:
+        return ("Example: Make 10 cards: front = word + example gap; back = definition + full sentence. "
+                "Quiz until you get 8/10 correct, then add 10 more tomorrow.")
+    if "math" in t or "formula" in t:
+        return ("Example: Copy 5 formulas on one page (area, perimeter, Pythagorean). "
+                "Solve 3 quick problems; circle any step you hesitated on.")
+    if "minecraft" in t:
+        return ("Example: Starter base: 9×9 footprint, oak + cobblestone, chest/furnace/crafting triangle; "
+                "torch the perimeter every 7 blocks.")
+    return ("Example: Write a tiny scenario that uses today’s idea once. "
+            "If it takes more than 10 minutes, cut the scope in half.")
+
+def make_faq(kw):
+    return [
+        ("How long does this take?",
+         "About 10–15 minutes for the quick version. You can repeat the mini-routine to go deeper."),
+        ("What tools do I need?",
+         "Just a timer and a notes app. If there’s a printable, you can use it on paper or as PDF.")
     ]
-    random.shuffle(pool)
-    return pool[:2]
 
 def build_article_html(title, date, sub, intent, kw):
-    bullets = make_bullets(intent)
-    routine = mini_routine()
-    rel     = related_list()
-    return f"""<!doctype html><meta charset="utf-8">
-<title>{title}</title><link rel="stylesheet" href="../style.css?v=4">
+    value = make_value_list(kw, intent)
+    steps = make_steps(kw)
+    ex    = make_domain_example(kw, sub)
+    faq   = make_faq(kw)
+
+    # tiny helper to list items as <li>
+    def li_list(items): return "".join(f"<li>{x}</li>" for x in items)
+
+    html = f"""<!doctype html><meta charset="utf-8">
+<title>{title}</title><link rel="stylesheet" href="../style.css?v=6">
 <article>
   <h1>{title}</h1>
   <p><small>{date} · tags: {intent}</small></p>
 
   <p>{make_intro(kw, sub, intent)}</p>
 
-  <h3>Key takeaways</h3>
-  <ul>
-    <li>{bullets[0]}</li><li>{bullets[1]}</li><li>{bullets[2]}</li>
-  </ul>
+  <h3>What you’ll get</h3>
+  <ul>{li_list(value)}</ul>
 
-  <h3>Mini routine to try</h3>
-  <ol>
-    <li>{routine[0]}</li><li>{routine[1]}</li><li>{routine[2]}</li>
-  </ol>
+  <h3>Mini plan (3–5 steps)</h3>
+  <ol>{li_list(steps)}</ol>
 
-  <h3>Also useful</h3>
+  <h3>Quick example</h3>
+  <p>{ex}</p>
+
+  <h3>Tiny checklist</h3>
   <ul>
-    <li>{rel[0]}</li><li>{rel[1]}</li>
+    <li>Write 1-line goal</li>
+    <li>Do one 25-minute block</li>
+    <li>Capture 3-line summary</li>
   </ul>
 
   <div class="cta">
-    <a href="https://serenimoon.gumroad.com/l/dceyg" target="_blank">Get the PDF planner</a>
+    <a href="https://serenimoon.gumroad.com/l/dceyg?utm_source=site&utm_medium=post&utm_campaign=cta&utm_content={kw.replace(' ','-')}" target="_blank">Get the PDF planner</a>
     <a href="https://www.youtube.com/@yourchannel" target="_blank">Watch related videos</a>
   </div>
+
+  <h3>FAQ</h3>
+  <p><strong>{faq[0][0]}</strong><br>{faq[0][1]}</p>
+  <p><strong>{faq[1][0]}</strong><br>{faq[1][1]}</p>
 </article>
 """
+    return html
+
 
 # ---------- Main ----------
 def main():
